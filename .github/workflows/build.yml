@@ -1,0 +1,32 @@
+name: Build
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [ master ]
+    paths:
+    - src/**
+    - build.gradle
+jobs:
+  dist:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4.1.7
+    - name: Setup Java 17
+      uses: actions/setup-java@v4.2.1
+      with:
+        java-version: 17
+        distribution: temurin
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v3.5.0
+    - name: Run Gradle dist
+      run: ./gradlew dist
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4.3.4
+      with:
+        name: BWSkinEditor
+        path: build/libs/BWSkinEditor.jar
+        retention-days: 7

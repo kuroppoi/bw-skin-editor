@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+}
+
+project.ext {
+    mainClass = 'io.github.kuroppoi.bwse.Main'
+    workingDir = 'run'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {    
+    implementation 'com.formdev:flatlaf:3.5'
+    implementation 'com.formdev:flatlaf-extras:3.5'
+    implementation 'com.formdev:flatlaf-intellij-themes:3.5'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+task dist(type: Jar) {
+    manifest {
+        attributes 'Main-Class': project.ext.mainClass, 'Multi-Release': 'true'
+    }
+    
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    
+    archiveBaseName = 'BWSkinEditor'
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn configurations.runtimeClasspath
+    with jar
+}
+
+task run(type: JavaExec) {
+    mainClass = project.ext.mainClass
+    workingDir = project.ext.workingDir
+    classpath = sourceSets.main.runtimeClasspath
+    
+    doFirst {
+        mkdir workingDir
+    }
+}
