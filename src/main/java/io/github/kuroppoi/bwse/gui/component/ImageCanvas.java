@@ -7,8 +7,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -18,8 +16,11 @@ import javax.swing.JComponent;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 
+import io.github.kuroppoi.bwse.gui.ActionManager;
+import io.github.kuroppoi.bwse.gui.ActionTarget;
+
 @SuppressWarnings("serial")
-public class ImageCanvas extends JComponent {
+public class ImageCanvas extends JComponent implements ActionTarget {
     
     public static final int MAX_SCALE = 10;
     private BufferedImage image;
@@ -42,7 +43,7 @@ public class ImageCanvas extends JComponent {
             
             @Override
             public void mousePressed(MouseEvent event) {
-                requestFocus();
+                ActionManager.setActionTarget(ImageCanvas.this);
                 Point point = event.getPoint();
                 
                 if(SwingUtilities.isMiddleMouseButton(event)) {
@@ -56,14 +57,10 @@ public class ImageCanvas extends JComponent {
                     if(!isPointInImage(pixelDragPoint)) {
                         pixelSelectionRect = null;
                         onPixelSelectionChanged(pixelSelectionRect);
+                    } else {
+                        pixelSelectionRect = new Rectangle(pixelDragPoint.x, pixelDragPoint.y, 0, 0);
+                        onPixelSelectionChanged(pixelSelectionRect);
                     }
-                }
-            }
-            
-            @Override
-            public void mouseReleased(MouseEvent event) {
-                if(SwingUtilities.isLeftMouseButton(event)) {
-                    onPixelSelection(pixelSelectionRect);
                 }
             }
             
@@ -144,15 +141,6 @@ public class ImageCanvas extends JComponent {
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
         addMouseWheelListener(mouseListener);
-        addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent event) {
-                if(event.getOppositeComponent() instanceof ImageCanvas) {
-                    pixelSelectionRect = null;
-                    onPixelSelectionChanged(pixelSelectionRect);
-                }
-            }
-        });
     }
     
     @Override
@@ -180,6 +168,19 @@ public class ImageCanvas extends JComponent {
         g2d.drawImage(image, drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, null);
     }
     
+    @Override
+    public void onFocusGained() {
+        requestFocusInWindow();
+    }
+    
+    @Override
+    public void onFocusLost() {
+        if(isShowing()) {
+            pixelSelectionRect = null;
+            onPixelSelectionChanged(null);
+        }
+    }
+    
     protected void onRightClick(Point point) {
         // Override
     }
@@ -193,10 +194,6 @@ public class ImageCanvas extends JComponent {
     }
     
     protected void onPixelSelectionChanged(Rectangle pixelArea) {
-        // Override
-    }
-    
-    protected void onPixelSelection(Rectangle pixelArea) {
         // Override
     }
     

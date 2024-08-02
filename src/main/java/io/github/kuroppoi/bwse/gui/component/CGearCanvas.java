@@ -18,7 +18,11 @@ public class CGearCanvas extends ImageCanvas {
     }
     
     @Override
-    protected void onPixelClicked(Point pixelPoint) {        
+    protected void onPixelClicked(Point pixelPoint) {
+        if(pixelPoint == null) {
+            return;
+        }
+        
         int x = pixelPoint.x;
         int y = pixelPoint.y;
         

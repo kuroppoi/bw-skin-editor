@@ -80,10 +80,11 @@ public class MainView {
         tabbedPane.setTabCloseCallback((pane, index) -> closeTab(index));
         tabbedPane.setTabType(TabType.card);
         tabbedPane.setShowTabSeparators(true);
-        tabbedPane.addChangeListener(event -> {            
-            currentView = (CGearEditorPanel)tabbedPane.getSelectedComponent();
+        tabbedPane.addChangeListener(event -> {
             tabbedPane.setTabsClosable(tabbedPane.getTabCount() > 1);
             closeFileAction.setEnabled(tabbedPane.getTabCount() > 1);
+            currentView = (CGearEditorPanel)tabbedPane.getSelectedComponent();
+            currentView.updateFocus();
         });
         
         // Create toolbar
@@ -92,7 +93,18 @@ public class MainView {
         toolBar.add(newFileAction);
         toolBar.add(openFileAction);
         toolBar.add(saveFileAction);
-        
+        toolBar.addSeparator();
+        toolBar.add(ActionManager.getAction(ActionManager.UNDO));
+        toolBar.add(ActionManager.getAction(ActionManager.REDO));
+        toolBar.addSeparator();
+        toolBar.add(ActionManager.getAction(ActionManager.COPY));
+        toolBar.add(ActionManager.getAction(ActionManager.PASTE));
+        toolBar.add(ActionManager.getAction(ActionManager.DELETE));
+        toolBar.addSeparator();
+        toolBar.add(ActionManager.getAction(ActionManager.FLIP_X));
+        toolBar.add(ActionManager.getAction(ActionManager.FLIP_Y));
+        toolBar.addSeparator();
+
         // Create menu bar
         int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
         JMenuBar menuBar = new JMenuBar();
@@ -117,6 +129,22 @@ public class MainView {
         fileMenu.addSeparator();
         fileMenu.add(exitAction);
         menuBar.add(fileMenu);
+        
+        JMenu editMenu = new JMenu("Edit");
+        editMenu.add(ActionManager.getAction(ActionManager.UNDO)).setAccelerator(KeyStroke.getKeyStroke('Z', shortcutMask));
+        editMenu.add(ActionManager.getAction(ActionManager.REDO)).setAccelerator(KeyStroke.getKeyStroke('Y', shortcutMask));
+        editMenu.addSeparator();
+        editMenu.add(ActionManager.getAction(ActionManager.COPY)).setAccelerator(KeyStroke.getKeyStroke('C', shortcutMask));
+        editMenu.add(ActionManager.getAction(ActionManager.PASTE)).setAccelerator(KeyStroke.getKeyStroke('V', shortcutMask));
+        editMenu.add(ActionManager.getAction(ActionManager.DELETE)).setAccelerator(KeyStroke.getKeyStroke('D', shortcutMask));
+        editMenu.addSeparator();
+        editMenu.add(ActionManager.getAction(ActionManager.FLIP_X));
+        editMenu.add(ActionManager.getAction(ActionManager.FLIP_Y));
+        editMenu.addSeparator();
+        editMenu.add(ActionManager.getAction(ActionManager.SELECT_ALL)).setAccelerator(KeyStroke.getKeyStroke('A', shortcutMask));
+        editMenu.add(ActionManager.getAction(ActionManager.DESELECT));
+        menuBar.add(editMenu);
+        SwingUtils.fixDisabledIcons(editMenu);
         
         JMenu viewMenu = new JMenu("View");
         viewMenu.add(togglePreviewAction).setAccelerator(KeyStroke.getKeyStroke("F1"));

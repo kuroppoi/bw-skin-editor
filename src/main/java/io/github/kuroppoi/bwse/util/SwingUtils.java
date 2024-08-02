@@ -15,12 +15,36 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 public class SwingUtils {
+    
+    public static void fixDisabledIcons(JMenu menu) {
+        for(int i = 0; i < menu.getItemCount(); i++) {
+            JMenuItem item = menu.getItem(i);
+            
+            if(item != null) {
+                item.setDisabledIcon(item.getIcon());
+            }
+        }
+    }
+    
+    public static void fixDisabledIcons(JPopupMenu menu) {
+        for(int i = 0; i < menu.getComponentCount(); i++) {
+            Component component = menu.getComponent(i);
+            
+            if(component instanceof JMenuItem) {
+                JMenuItem item = (JMenuItem)component;
+                item.setDisabledIcon(item.getIcon());
+            }
+        }
+    }
     
     public static Action createAction(String name, Runnable handler) {
         return createAction(name, null, handler);

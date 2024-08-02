@@ -18,6 +18,7 @@ import io.github.kuroppoi.bwse.graphics.Tile;
 import io.github.kuroppoi.bwse.graphics.TileImage;
 import io.github.kuroppoi.bwse.graphics.TileMap;
 import io.github.kuroppoi.bwse.graphics.TileSet;
+import io.github.kuroppoi.bwse.gui.ActionManager;
 import io.github.kuroppoi.bwse.gui.model.TileInfo;
 
 @SuppressWarnings("serial")
@@ -33,18 +34,9 @@ public class CGearEditorPanel extends JPanel {
     public CGearEditorPanel() {        
         // Skin panel
         skinPanel = new TileMapCanvas();
-        skinPanel.setPaletteName(0, "Background Palette");
-        skinPanel.setPaletteName(1, "Button Palette (Bright)");
-        skinPanel.setPaletteName(2, "Button Palette (Less bright)");
-        skinPanel.setPaletteName(3, "Button Palette (Dark)");
-        skinPanel.setPaletteName(4, "Button Palette (Darker)");
-        skinPanel.setPaletteName(5, "Button Palette (Darkest)");
-        skinPanel.setPaletteName(7, "Button Palette (Off)");
-        skinPanel.setPaletteName(8, "Top Bar Palette");
-        skinPanel.setPaletteName(CGearRenderer.CGEAR_SKIN_PALETTE_INDEX, "Skin Palette");
         skinPanel.setImage(32, 24, renderer.getTileSet(), renderer.getPaletteTable(), renderer.getSkinMap());
         skinPanel.setScale(2);
-         
+        
         // Tileset panel
         tilePanel = new TileMapCanvas();
         tilePanel.setImage(32, 32, renderer.getTileSet(), renderer.getPaletteTable(), createTileSetMap());
@@ -88,12 +80,24 @@ public class CGearEditorPanel extends JPanel {
         previewPanel.updateImage();
     }
     
+    public void updateFocus() {
+        TileMapCanvas focusedComponent = tilePanel.hasSelection() ? tilePanel : skinPanel.hasSelection() ? skinPanel : null;
+        ActionManager.setActionTarget(focusedComponent);
+        
+        if(focusedComponent != null) {
+            focusedComponent.updateActions();
+        }
+    }
+    
     public void togglePreview() {
         previewMode = !previewMode;
         skinScrollPane.setViewportView(previewMode ? previewPanel : skinPanel);
         
         if(previewMode) {
+            ActionManager.removeActionTarget(skinPanel);
             previewPanel.updateImage();
+        } else {
+            updateFocus();
         }
     }
     
@@ -109,6 +113,8 @@ public class CGearEditorPanel extends JPanel {
     
     public void setSkin(TileImage skin, boolean transform) {
         renderer.setSkin(skin, transform);
+        skinPanel.clearEdits();
+        skinPanel.clearTileSelection();
         updateImages();
     }
     
