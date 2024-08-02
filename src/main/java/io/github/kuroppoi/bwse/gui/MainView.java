@@ -67,7 +67,7 @@ public class MainView {
                 setSelectedFile(file);
             }
             
-            if(getDialogType() != SAVE_DIALOG || !file.exists() || SwingUtils.showYesNoDialog(frame, "The file '%s' already exists.\nDo you want to overwrite it?".formatted(file.getName()))) {
+            if(getDialogType() != SAVE_DIALOG || !file.exists() || SwingUtils.showYesNoDialog(fileChooser, "The file '%s' already exists.\nDo you want to overwrite it?".formatted(file.getName()))) {
                 super.approveSelection();
             }
         }    
