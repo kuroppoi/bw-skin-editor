@@ -44,12 +44,34 @@ import io.github.kuroppoi.bwse.io.TileImageIO;
 import io.github.kuroppoi.bwse.util.Crc16;
 import io.github.kuroppoi.bwse.util.SwingUtils;
 
+@SuppressWarnings("serial")
 public class MainView {
     
     public static final FileFilter IMAGE_FILE_FILTER = new FileNameExtensionFilter("Image Files (*.png, *.bmp, *.jpg, *.jpeg)", "png", "bmp", "jpg", "jpeg");
     public static final FileFilter PNG_FILE_FILTER = new FileNameExtensionFilter("Image Files (*.png)", "png");
     public static final FileFilter SKIN_FILE_FILTER = new FileNameExtensionFilter("C-Gear Skin Files (*.bin, *.cgb, *.psk)", "bin", "cgb", "psk");
-    private final JFileChooser fileChooser = new JFileChooser(".");
+    private final JFileChooser fileChooser = new JFileChooser(".") {
+        @Override
+        public void approveSelection() {
+            File file = getSelectedFile();
+            FileFilter filter = getFileFilter();
+            String fileExtension = getFileExtension(file);
+            List<String> validExtensions = null;
+            
+            if(filter instanceof FileNameExtensionFilter) {
+                validExtensions = Arrays.asList(((FileNameExtensionFilter)filter).getExtensions());
+            }
+            
+            if(fileExtension == null || (validExtensions != null && !validExtensions.isEmpty() &&  !validExtensions.contains(fileExtension))) {
+                file = new File(fileChooser.getCurrentDirectory(), "%s.%s".formatted(file.getName(), validExtensions.get(0)));
+                setSelectedFile(file);
+            }
+            
+            if(getDialogType() != SAVE_DIALOG || !file.exists() || SwingUtils.showYesNoDialog(frame, "The file '%s' already exists.\nDo you want to overwrite it?".formatted(file.getName()))) {
+                super.approveSelection();
+            }
+        }    
+    };
     private final FlatTabbedPane tabbedPane;
     private final JFrame frame;
     private CGearEditorPanel currentView;
@@ -62,7 +84,7 @@ public class MainView {
         Action newFileAction = SwingUtils.createAction("New", UIManager.getIcon("FileView.fileIcon"), this::createNewTab);
         Action openFileAction = SwingUtils.createAction("Open", UIManager.getIcon("FileView.directoryIcon"), () -> showFileOpenDialog(SKIN_FILE_FILTER, this::openSkinFile));
         Action closeFileAction = SwingUtils.createAction("Close", this::closeCurrentTab);
-        Action saveFileAction = SwingUtils.createAction("Save As...", UIManager.getIcon("FileView.floppyDriveIcon"), () -> showFileSaveDialog(SKIN_FILE_FILTER, "bin", this::saveSkinFile));
+        Action saveFileAction = SwingUtils.createAction("Save As...", UIManager.getIcon("FileView.floppyDriveIcon"), () -> showFileSaveDialog(SKIN_FILE_FILTER, this::saveSkinFile));
         Action importSkinImageAction = SwingUtils.createAction("Skin Image", () -> showImageOpenDialog(256, 192, this::importSkinImage));
         Action importSkinTilesAction = SwingUtils.createAction("Skin Tileset Image", () -> showImageOpenDialog(136, 120, this::importTileSetImage));
         Action exportSkinImageAction = SwingUtils.createAction("Skin Image", () -> showImageSaveDialog(currentView::drawCGearSkin));
@@ -209,7 +231,7 @@ public class MainView {
     }
     
     private void showImageSaveDialog(Supplier<BufferedImage> imageSupplier) {
-        showFileSaveDialog(PNG_FILE_FILTER, "png", file -> {
+        showFileSaveDialog(PNG_FILE_FILTER, file -> {
             String type = getFileExtension(file);
             
             try {
@@ -234,24 +256,12 @@ public class MainView {
         }
     }
     
-    private void showFileSaveDialog(FileFilter fileFilter, String defaultExtension, Consumer<File> handler) {
+    private void showFileSaveDialog(FileFilter fileFilter, Consumer<File> handler) {
         fileChooser.resetChoosableFileFilters();
         fileChooser.setFileFilter(fileFilter);
         
         if(fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            String fileExtension = getFileExtension(file);
-            List<String> validExtensions = null;
-            
-            if(fileFilter instanceof FileNameExtensionFilter) {
-                validExtensions = Arrays.asList(((FileNameExtensionFilter)fileFilter).getExtensions());
-            }
-            
-            if(fileExtension == null || (validExtensions != null && !validExtensions.contains(fileExtension))) {
-                file = new File(fileChooser.getCurrentDirectory(), "%s.%s".formatted(file.getName(), defaultExtension));
-            }
-            
-            handler.accept(file);
+            handler.accept(fileChooser.getSelectedFile());
         }
     }
     
